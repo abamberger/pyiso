@@ -92,7 +92,7 @@ class dbfuncs(object):
                     , lmp real
                     , CONSTRAINT lmp_{1}_{0}_pkey PRIMARY KEY(id, datatime)
                     )
-                    """.format(market))
+                    """.format(market, p))
 
             if market == 'nyiso':
                 if p == 'dahr':
@@ -148,6 +148,15 @@ class dbfuncs(object):
         self.cur.execute("""select id
                         from isos
                         where name = '{0}'""".format(market))
+        table = self.cur.fetchone()[0]
+
+        return table
+
+    def _get_node_id(self, marketid, name):
+        self.cur.execute("""select id
+                        from nodes
+                        where market_id = {0}
+                        and name = '{1}'""".format(marketid, name))
         table = self.cur.fetchone()[0]
 
         return table
@@ -208,7 +217,7 @@ class dbfuncs(object):
 
     def _insert_lmp_data(self, df, market_id, market, product):
         if self.options['verbose']:
-            print 'Inserting lmp data'
+            print 'Inserting lmp data, {0} rows'.format(len(df))
 
         if self.options['verbose']:
             print '    Retrieving node data and joining'
@@ -347,7 +356,6 @@ class dbfuncs(object):
                 anc_data.columns = ['datatime', 'name', 'iso_node_id', 'spin_10', 'spin_10_non_synch', 'op_res_30', 'reg_cap']
 
         return anc_data
-
 
     def _insert_anc_data(self, df, market, product):
         new_month_flag = True
